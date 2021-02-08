@@ -1,2 +1,3 @@
 # Hamber-Programming-Club
-A repository used to share code throughout Hamber's programming club.
+This is a repository for sharing code for members of Hamber Programming Club. 
+If you have a suggestion to make, create a pull request/raise an issue.
