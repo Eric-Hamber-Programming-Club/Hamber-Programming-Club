@@ -1,8 +1,13 @@
 n = int(input())
-c = int(input())
-ans = n//c
-if n%c > 0: ans += 1
-print(ans)
+j, k = map(int, input().split()) 
+face = [*"".join([input() for _ in range(k)])]
+for i in range(j//2, j*k, j):
+    face[i] = face[i]*(n - j)
 
-#print(-(-n//c))
+for i in range(0, j*k, j):
+    print("".join(face[i:i+j]))
+
+
+
+
 
