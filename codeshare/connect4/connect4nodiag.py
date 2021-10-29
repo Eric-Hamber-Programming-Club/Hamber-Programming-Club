@@ -12,6 +12,7 @@ def check4():
 def printboard():
     os.system("cls")
     h = ["-", "@", "O"]
+    print(c)
     for i in range(7):
         row = c[i*7:i*7+7]
         for j in row:
@@ -26,14 +27,17 @@ player = 1
 printboard()
 while True:
     col = input(f"Player {player}'s turn: ")
+    # validate input
     if col not in ["1", "2", "3", "4", "5", "6", "7"]:
         printboard()
         print("Invalid input! Try again.")
         continue
 
+    # mathematically derive 
     col = 41 + int(col)
     fl = True
 
+    # drop in game piece to highest unoccupied column
     while c[col] != '0':
         col -= 7
         if col < 0:
