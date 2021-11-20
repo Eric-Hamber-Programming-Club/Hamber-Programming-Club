@@ -4,46 +4,59 @@
             {
                 "Game": {
                     "type": "game script",
-                    "start": "Player()",
-                    "loop": ""
+                    "start": "set_room(\"Menu\")",
+                    "loop": "self.mx = mouse_x()\r\nself.my = mouse_y()"
                 }
             },
             {
-                "Block": {
+                "Button": {
                     "type": "object script",
-                    "start": "\nself.temporary = False\n",
-                    "loop": "#Block loop\n\n"
-                }
-            },
-            {
-                "Player": {
-                    "type": "object script",
-                    "start": "#Player start\nself.sprite = new_sprite(\"player.png\")\n\nself.col = [random.random() for i in range(3)]\n\n\n\n#random colour\nfilterConfig = {\n    \"originalColor\":[1, 1, 1],\n    \"newColor\":self.col,\n    \"epsilon\":1\n}\n\n#add filter\nfilter = new_color_replace_filter(filterConfig)\nadd_filter(self, filter)\n\nself.vx = self.vy = 0\n",
-                    "loop": "#Player loop\n\n#print(self.vy)\nself.dragx = round(self.vx*0.182, 4)\nself.dragy = round(self.vy*0.082, 4)\nif key_is_pressed(\"arrowRight\"):\n    self.ax = 1\nelif key_is_pressed(\"arrowLeft\"):\n    self.ax = -1\nelse:\n    self.ax = 0\n\nif key_was_pressed(\"arrowUp\"):\n    self.ay = 30\nelse:\n    self.ay = -0.8\n\nself.vx += self.ax - self.dragx\nself.vy += self.ay - self.dragy\n\nself.x += self.vx\nself.y += self.vy\n"
+                    "start": "# make_button(x, y, w, h, scaleX, scaleY, s_name, callback, animation=None z=2, inst=None):\n\n# non standard attributes, should be set by constructor\nself.animation = []\nself.callback = lambda: None\nself.w = 1\nself.h = 1\n\nself.anim_block = True\n\n# reference to original scale because it gets changed in animations\nself.scale_x = 1\nself.scale_y = 1\n\nself.down = False\nself.hover = False\nself.click = False\n\nself.exempt = 0",
+                    "loop": "self.click = False\n\nif self.animation and not self.animation.finished:\n    self.animation.do_step()\n    if self.anim_block:\n        return\n\nw = (self.w * self.scaleX) / 2\nh = (self.h * self.scaleY) / 2\nx = self.x - camera_x()\ny = self.y - camera_y()\n\nxcol = x - w <= game.mx <= x + w\nycol = y-h <= game.my <= y + h\n\nif xcol and ycol:\n    self.hover = True\n    if mouse_was_pressed('left'):\n        self.down = True\n    if mouse_was_released('left') and self.down:\n        self.down = False\n        self.click = True\n        self.callback()\n\nelse:\n    self.hover = False\n\nif mouse_was_released('left'):\n    self.down = False\n\nif self.hover and not self.down:\n    self.alpha = 0.96\n    self.scaleX = self.scale_x + 0.06*self.scale_x\n    self.scaleY = self.scale_y + 0.06*self.scale_y\n\nelif self.down and not self.hover:\n    self.alpha = 0.96\n    self.scaleX = self.scale_x\n    self.scaleY = self.scale_y\n\nelif self.down and self.hover:\n    self.scaleX = self.scale_x - 0.06*self.scale_x\n    self.scaleY = self.scale_y - 0.06*self.scale_y\n    self.alpha = 0.96\n\nelse:\n    self.alpha = 1\n    self.scaleX = self.scale_x\n    self.scaleY = self.scale_y\n"
                 }
             }
         ],
-        "room": [],
+        "room": [
+            {
+                "Menu": {
+                    "type": "room script",
+                    "start": "\n\nright_anim = [\n    ['scaleX=,0 scaleY=,0', 1],\n    ['scaleX+,0.02 scaleY+,0.02 angle+,9 x+,7', 40],\n]\nleft_anim = [\n    ['scaleX=,0 scaleY=,0', 1],\n    ['scaleX+,0.02 scaleY+,0.02 angle-,9 x-,7', 40],\n]\n\ndef tempcb():\n    pass\n\ncreate_but = Button()\njoin_but = Button()\n\nmake_button(0, -50, 717, 195, 0.8, 0.8, 'create_button.png', tempcb, right_anim, inst=create_but)\nmake_button(0, -50, 717, 195, 0.8, 0.8, 'join_button.png', tempcb, left_anim, inst=join_but)\n",
+                    "loop": "#Menu loop"
+                }
+            }
+        ],
         "texture": [
             {
-                "player.png": {
+                "create_button.png": {
                     "type": "image",
-                    "uri": "https://s3.us-west-1.amazonaws.com/media.pixelpad.io/__ASSET__.19216.332629.1637387734.player.png"
+                    "uri": "https://s3.us-west-1.amazonaws.com/media.pixelpad.io/__ASSET__.19203.332625.1637388707.create_button.png"
+                }
+            },
+            {
+                "join_button.png": {
+                    "type": "image",
+                    "uri": "https://s3.us-west-1.amazonaws.com/media.pixelpad.io/__ASSET__.19203.332625.1637388701.join_button.png"
                 }
             }
         ],
         "sound": [],
         "function": [
             {
-                "Conventions.py": {
+                "imports_and_constants.py": {
                     "type": "function script",
-                    "head": "\"\"\"\n---CONVENTIONS---\n\n- 1 tile is 40x40\n- 1 player is axa\n\n\n\n\n\n\"\"\""
+                    "head": "from collections import deque"
                 }
             },
             {
-                "imports.py": {
+                "misc_functions.py": {
                     "type": "function script",
-                    "head": "import random"
+                    "head": "def make_button(x, y, w, h, scaleX, scaleY, s_name, callback, animation=None, z=2, inst=None):\n    if inst is None:\n        inst = Button()\n    inst.x = x\n    inst.y = y\n    inst.w = w \n    inst.h = h\n    inst.scaleX = inst.scale_x = scaleX\n    inst.scaleY = inst.scale_y = scaleY\n    inst.sprite = sprite(s_name)\n    if animation is not None:\n        inst.animation = Animation(inst, animation)\n    inst.callback = callback\n    inst.z = z"
+                }
+            },
+            {
+                "Animation.py": {
+                    "type": "function script",
+                    "head": "class Animation:\n    def __init__(self, obj, steps):\n        self.commands = {\n            'scaleX+': self.scaleX_plus,\n            'scaleX-': self.scaleX_minus,\n            'scaleX=': self.scaleX_equals,\n            'scaleY+': self.scaleY_plus,\n            'scaleY-': self.scaleY_minus,\n            'scaleY=': self.scaleY_equals,\n            'angle+': self.angle_plus,\n            'angle-': self.angle_minus,\n            'angle=': self.angle_equals,\n            'x+': self.x_plus,\n            'x-': self.x_minus,\n            'x=': self.x_equals,\n            'y+': self.y_plus,\n            'y-': self.y_minus,\n            'y=': self.y_equals,\n            'wait': self.wait\n        }\n\n        self.obj = obj\n        self.finished = not bool(len(steps))\n\n        if not isinstance(steps, deque):\n            steps = deque(steps)\n        self.steps = steps\n\n        if not self.finished:\n            self.current = steps.popleft()\n            \n    def do_step(self):\n        if not self.finished:\n            # e.g. ['scaleX+,1 scaleY+,1', 5]\n            for c in self.current[0].split():\n                c = c.split(',')\n                self.commands[c[0]](float(c[1]))\n\n            self.current[1] -= 1\n\n            if self.current[1] <= 0:\n                try:\n                    self.current = self.steps.popleft()\n                except IndexError:\n                    self.finished = True\n\n    def scaleX_plus(self, n):\n        self.obj.scaleX += n\n    def scaleX_minus(self, n):\n        self.obj.scaleX -= n\n    def scaleX_equals(self, n):\n        self.obj.scaleX = n\n    def scaleY_plus(self, n):\n        self.obj.scaleY += n\n    def scaleY_minus(self, n):\n        self.obj.scaleY -= n\n    def scaleY_equals(self, n):\n        self.obj.scaleY = n\n    def angle_plus(self, n):\n        self.obj.angle += n\n    def angle_minus(self, n):\n        self.obj.angle -= n\n    def angle_equals(self, n):\n        self.obj.angle = n\n    def x_plus(self, n):\n        self.obj.x += n\n    def x_minus(self, n):\n        self.obj.x -= n\n    def x_equals(self, n):\n        self.obj.x = n\n    def y_plus(self, n):\n        self.obj.y += n\n    def y_minus(self, n):\n        self.obj.y -= n\n    def y_equals(self, n):\n        self.obj.y = n\n    def wait(self, n):\n        pass\n"
                 }
             }
         ]
