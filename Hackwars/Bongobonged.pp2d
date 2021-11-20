@@ -4,22 +4,22 @@
             {
                 "Game": {
                     "type": "game script",
-                    "start": "# set_room(\"Menu\")\r\nPlayer()",
-                    "loop": "self.mx = mouse_x()\r\nself.my = mouse_y()"
+                    "start": "set_room(\"Menu\")\r\n\r\n",
+                    "loop": "self.mx = mouse_x()\r\nself.my = mouse_y()\r\n"
                 }
             },
             {
                 "Block": {
                     "type": "object script",
-                    "start": "\nself.temporary = False\n",
-                    "loop": "#Block loop\n\n"
+                    "start": "\nself.temporary = False\nself.ctime = time_ms()\nself.life = 5000\nself.sprite = sprite(\"block.png\")",
+                    "loop": "#Block loop\nif self.temporary:\n\n    time_elapsed = (time_ms() - self.ctime)\n    self.alpha = time_elapsed/self.life\n\n    if time_elapsed > self.life:\n        destroy(self)\n        return\n\nplayers = get_collision_list(self, \"Player\")\n\nfor pl in players:\n\n    pl.standing = False\n    if pl.vy < 0:\n        pl.y = self.y + (20 + 32)\n        pl.standing = True\n        pl.vy = 0\n\n    elif pl.vy > 0:\n        pl.y = self.y - (20 + 32)\n        pl.vy = 0\n\n    elif pl.x + 16 < self.x:\n        pl.x = self.x - (20 + 16)\n\n    elif pl.x - 16 > self.x:\n        pl.x = self.x + (20 + 17)\n    \n        \n\n"
                 }
             },
             {
                 "Player": {
                     "type": "object script",
-                    "start": "#Player start\nself.IDLE_SPRITE = sprite(\"player_idle.png\")\nself.MOVE_SPRITE = sprite(\"player_move.png\")\n\nself.col = [random.random() for i in range(3)]\n\n\n\n#random colour\nfilterConfig = {\n    \"originalColor\":[1, 1, 1],\n    \"newColor\":self.col,\n    \"epsilon\":1\n}\n\n#add filter\nfilter = new_color_replace_filter(filterConfig)\nadd_filter(self, filter)\n\nself.vx = self.vy = 0\n",
-                    "loop": "#Player loop\n\n#print(self.vy)\nself.dragx = round(self.vx*0.182, 4)\nself.dragy = round(self.vy*0.082, 4)\nif key_is_pressed(\"arrowRight\"):\n    self.ax = 1\nelif key_is_pressed(\"arrowLeft\"):\n    self.ax = -1\nelse:\n    self.ax = 0\n\nif key_was_pressed(\"arrowUp\"):\n    self.ay = 30\nelse:\n    self.ay = -0.8\n\nself.vx += self.ax - self.dragx\nself.vy += self.ay - self.dragy\n\nself.x += self.vx\nself.y += self.vy\n\nif abs(self.vx) > 0.2:\n    self.sprite = self.MOVE_SPRITE\n    self.scaleX = -1 if self.vx < 0 else 1\nelse:\n    self.sprite = self.IDLE_SPRITE"
+                    "start": "#Player start\nself.IDLE_SPRITE = sprite(\"player_idle.png\")\nself.MOVE_SPRITE = sprite(\"player_move.png\")\n\nself.col = [random.random() for i in range(3)]\n\n\n\n#random colour\nfilterConfig = {\n    \"originalColor\":[1, 1, 1],\n    \"newColor\": [255,0,0],\n    \"epsilon\":255\n}\n\n#add filter\nfilter = new_color_replace_filter(filterConfig)\nadd_filter(self, filter)\n\nself.vx = self.vy = 0\n\nself.standing = False\n",
+                    "loop": "#Movement code\n\n#Drag resistance - modifying these will change max velocity\nself.dragx = round(self.vx*0.182, 2)\nself.dragy = round(self.vy*0.082, 2)\n\n\nif key_is_pressed(\"arrowRight\"):\n    self.ax = 1\nelif key_is_pressed(\"arrowLeft\"):\n    self.ax = -1\nelse:\n    self.ax = 0\n\n\nif self.y - 32 <= -360:\n    self.y = -328\n    self.standing = True\n    self.vy = 0\n\n\nif self.standing:\n    if key_is_pressed(\"arrowUp\"):\n        self.ay = 25\n        self.standing = False\n    else:\n        self.ay = 0\nelse:\n    self.ay = -1.1\n\nif not get_collision(self, \"Block\"):\n    self.standing = False\n\nself.vx += self.ax - self.dragx\nself.vy += self.ay - self.dragy\n\nself.x += self.vx\nself.y += self.vy\n\n\n\nif abs(self.vx) > 0.2:\n    self.sprite = self.MOVE_SPRITE\n    self.scaleX = -1 if self.vx < 0 else 1\nelse:\n    self.sprite = self.IDLE_SPRITE\n\n"
                 }
             },
             {
@@ -28,14 +28,28 @@
                     "start": "# make_button(x, y, w, h, scaleX, scaleY, s_name, callback, animation=None z=2, inst=None):\n\n# non standard attributes, should be set by constructor\nself.animation = []\nself.callback = lambda: None\nself.w = 1\nself.h = 1\n\nself.anim_block = True\n\n# reference to original scale because it gets changed in animations\nself.scale_x = 1\nself.scale_y = 1\n\nself.down = False\nself.hover = False\nself.click = False\n\nself.exempt = 0",
                     "loop": "self.click = False\n\nif self.animation and not self.animation.finished:\n    self.animation.do_step()\n    if self.anim_block:\n        return\n\nw = (self.w * self.scaleX) / 2\nh = (self.h * self.scaleY) / 2\nx = self.x - camera_x()\ny = self.y - camera_y()\n\nxcol = x - w <= game.mx <= x + w\nycol = y-h <= game.my <= y + h\n\nif xcol and ycol:\n    self.hover = True\n    if mouse_was_pressed('left'):\n        self.down = True\n    if mouse_was_released('left') and self.down:\n        self.down = False\n        self.click = True\n        self.callback()\n\nelse:\n    self.hover = False\n\nif mouse_was_released('left'):\n    self.down = False\n\nif self.hover and not self.down:\n    self.alpha = 0.96\n    self.scaleX = self.scale_x + 0.06*self.scale_x\n    self.scaleY = self.scale_y + 0.06*self.scale_y\n\nelif self.down and not self.hover:\n    self.alpha = 0.96\n    self.scaleX = self.scale_x\n    self.scaleY = self.scale_y\n\nelif self.down and self.hover:\n    self.scaleX = self.scale_x - 0.06*self.scale_x\n    self.scaleY = self.scale_y - 0.06*self.scale_y\n    self.alpha = 0.96\n\nelse:\n    self.alpha = 1\n    self.scaleX = self.scale_x\n    self.scaleY = self.scale_y\n"
                 }
+            },
+            {
+                "Bullet": {
+                    "type": "object script",
+                    "start": "#Bullet start\nself.sprite = sprite(\"bullet.png\")",
+                    "loop": "#Bullet loop\n\n"
+                }
             }
         ],
         "room": [
             {
                 "Menu": {
                     "type": "room script",
-                    "start": "\n\nright_anim = [\n    ['scaleX=,0 scaleY=,0', 1],\n    ['scaleX+,0.02 scaleY+,0.02 angle+,9 x+,7', 40],\n]\nleft_anim = [\n    ['scaleX=,0 scaleY=,0', 1],\n    ['scaleX+,0.02 scaleY+,0.02 angle-,9 x-,7', 40],\n]\n\ndef tempcb():\n    pass\n\ncreate_but = Button()\njoin_but = Button()\n\nmake_button(0, -50, 717, 195, 0.8, 0.8, 'create_button.png', tempcb, right_anim, inst=create_but)\nmake_button(0, -50, 717, 195, 0.8, 0.8, 'join_button.png', tempcb, left_anim, inst=join_but)\n",
+                    "start": "\n\nright_anim = [\n    ['scaleX=,0 scaleY=,0', 1],\n    ['scaleX+,0.02 scaleY+,0.02 angle+,9 x+,7', 40],\n]\nleft_anim = [\n    ['scaleX=,0 scaleY=,0', 1],\n    ['scaleX+,0.02 scaleY+,0.02 angle-,9 x-,7', 40],\n]\n\ndef tempcb():\n    pass\n\ndef tempcb2():\n    set_room(\"Game_Room\")\n\ncreate_but = Button()\njoin_but = Button()\n\nmake_button(0, -50, 717, 195, 0.8, 0.8, 'create_button.png', tempcb, right_anim, inst=create_but)\nmake_button(0, -50, 717, 195, 0.8, 0.8, 'join_button.png', tempcb2, left_anim, inst=join_but)\n",
                     "loop": "#Menu loop"
+                }
+            },
+            {
+                "Game_Room": {
+                    "type": "room script",
+                    "start": "#Game_Room start\n\n\nself.c = 0\n\nself.grid = [\n    \"X . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . . X X X . . . . . . . . . . . . . \",\n    \". . . . . . . . . . . . . . . X . . . . . . . . . . . . . . . . \",\n    \". . . X . . . . . . . . . . X . . . . . . . . . . . . . . . . X \"\n]\n\nself.tiles = []\n\nx0, y0 = -620, 340\nfor row in range(18):\n    for col in range(32):\n        if self.grid[row][col*2] == \"X\":\n\n            self.tiles.append(Block())\n            self.tiles[-1].x = x0 + col * 40\n            self.tiles[-1].y = y0 - row * 40\n\nPlayer()",
+                    "loop": "#Game_Room loop\n\nself.c = (self.c+1)%60\nif not self.c:\n    print(get_fps())"
                 }
             }
         ],
@@ -63,6 +77,18 @@
                     "type": "image",
                     "uri": "https://s3.us-west-1.amazonaws.com/media.pixelpad.io/__ASSET__.19203.332625.1637390926.player_move.png"
                 }
+            },
+            {
+                "block.png": {
+                    "type": "image",
+                    "uri": "https://s3.us-west-1.amazonaws.com/media.pixelpad.io/__ASSET__.19216.332629.1637432125.block.png"
+                }
+            },
+            {
+                "bullet.png": {
+                    "type": "image",
+                    "uri": "https://s3.us-west-1.amazonaws.com/media.pixelpad.io/__ASSET__.19216.332629.1637432267.bullet.png"
+                }
             }
         ],
         "sound": [],
@@ -70,13 +96,13 @@
             {
                 "Conventions.py": {
                     "type": "function script",
-                    "head": "\"\"\"\n---CONVENTIONS---\n\n- 1 tile is 40x40\n- 1 player is axa\n\n\n\n\n\n\"\"\""
+                    "head": "\"\"\"\n---CONVENTIONS---\n\n- 1 tile is 40x40\n- 1 player is 32x64\n- Game grid is 32 by 18 tiles\n\n\n\n\n\n\"\"\""
                 }
             },
             {
                 "imports_and_constants.py": {
                     "type": "function script",
-                    "head": "from collections import deque\nimport random"
+                    "head": "from collections import deque\nimport random\nimport time\n\ndef time_ms(): return (time.time() * 1000)//1"
                 }
             },
             {
