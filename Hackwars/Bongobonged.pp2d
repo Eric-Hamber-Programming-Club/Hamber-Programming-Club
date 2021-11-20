@@ -4,8 +4,22 @@
             {
                 "Game": {
                     "type": "game script",
-                    "start": "set_room(\"Menu\")",
+                    "start": "# set_room(\"Menu\")\r\nPlayer()",
                     "loop": "self.mx = mouse_x()\r\nself.my = mouse_y()"
+                }
+            },
+            {
+                "Block": {
+                    "type": "object script",
+                    "start": "\nself.temporary = False\n",
+                    "loop": "#Block loop\n\n"
+                }
+            },
+            {
+                "Player": {
+                    "type": "object script",
+                    "start": "#Player start\nself.IDLE_SPRITE = sprite(\"player_idle.png\")\nself.MOVE_SPRITE = sprite(\"player_move.png\")\n\nself.col = [random.random() for i in range(3)]\n\n\n\n#random colour\nfilterConfig = {\n    \"originalColor\":[1, 1, 1],\n    \"newColor\":self.col,\n    \"epsilon\":1\n}\n\n#add filter\nfilter = new_color_replace_filter(filterConfig)\nadd_filter(self, filter)\n\nself.vx = self.vy = 0\n",
+                    "loop": "#Player loop\n\n#print(self.vy)\nself.dragx = round(self.vx*0.182, 4)\nself.dragy = round(self.vy*0.082, 4)\nif key_is_pressed(\"arrowRight\"):\n    self.ax = 1\nelif key_is_pressed(\"arrowLeft\"):\n    self.ax = -1\nelse:\n    self.ax = 0\n\nif key_was_pressed(\"arrowUp\"):\n    self.ay = 30\nelse:\n    self.ay = -0.8\n\nself.vx += self.ax - self.dragx\nself.vy += self.ay - self.dragy\n\nself.x += self.vx\nself.y += self.vy\n\nif abs(self.vx) > 0.2:\n    self.sprite = self.MOVE_SPRITE\n    self.scaleX = -1 if self.vx < 0 else 1\nelse:\n    self.sprite = self.IDLE_SPRITE"
                 }
             },
             {
@@ -27,6 +41,12 @@
         ],
         "texture": [
             {
+                "player_idle.png": {
+                    "type": "image",
+                    "uri": "https://s3.us-west-1.amazonaws.com/media.pixelpad.io/__ASSET__.19203.332625.1637391011.player_idle.png"
+                }
+            },
+            {
                 "create_button.png": {
                     "type": "image",
                     "uri": "https://s3.us-west-1.amazonaws.com/media.pixelpad.io/__ASSET__.19203.332625.1637388707.create_button.png"
@@ -37,14 +57,26 @@
                     "type": "image",
                     "uri": "https://s3.us-west-1.amazonaws.com/media.pixelpad.io/__ASSET__.19203.332625.1637388701.join_button.png"
                 }
+            },
+            {
+                "player_move.png": {
+                    "type": "image",
+                    "uri": "https://s3.us-west-1.amazonaws.com/media.pixelpad.io/__ASSET__.19203.332625.1637390926.player_move.png"
+                }
             }
         ],
         "sound": [],
         "function": [
             {
+                "Conventions.py": {
+                    "type": "function script",
+                    "head": "\"\"\"\n---CONVENTIONS---\n\n- 1 tile is 40x40\n- 1 player is axa\n\n\n\n\n\n\"\"\""
+                }
+            },
+            {
                 "imports_and_constants.py": {
                     "type": "function script",
-                    "head": "from collections import deque"
+                    "head": "from collections import deque\nimport random"
                 }
             },
             {
