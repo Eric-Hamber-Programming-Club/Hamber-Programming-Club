@@ -1,6 +1,6 @@
 # Hamber Programming Club
 
-This repository is for sharing code to students in Eric Hamber's Programming Club. All code is free to use under the terms and conditions of the enclosed [license](https://github.com/SubwayMan/Hamber-Programming-Club/blob/main/LICENSE). The intent is to provide a learning resource for varying levels ofaptitude with computers.
+This repository is for sharing code to students in Eric Hamber's Programming Club. All code is free to use under the terms and conditions of the enclosed [license](https://github.com/SubwayMan/Hamber-Programming-Club/blob/main/LICENSE). The intent is to provide a learning resource for varying levels of aptitude with computers.
 
 ### Get started
 The code can be viewed directly in your browser or copied onto your local machine. To do this, install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) and run the command 
