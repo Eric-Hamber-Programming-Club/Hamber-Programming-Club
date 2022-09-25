@@ -1,7 +1,7 @@
-from fltk import * # FLTK :((
+import re
+from fltk import * # FLTK is bad, DO NOT USE FLTK
 
 # TODO
-# Validate inputs on submit
 # Comment stuff
 
 class SignupWindow(Fl_Double_Window):
@@ -14,13 +14,17 @@ class SignupWindow(Fl_Double_Window):
         title.labelsize(30)
         title.align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT)
 
-        form_y = round(self.h() * 0.125)
+        form_y = round(self.h() * 0.130)
         name_w = round(self.w() / 4)
         number_x = 30 + name_w + 30
-        number_w = round(self.w()/12)
+        number_w = round(self.w() / 12)
         email_x = number_x + number_w + 30
-        email_w = round(self.w()/3)
+        email_w = round(self.w() / 3)
         button_x = email_x + email_w + 30
+
+        self.error_box = Fl_Box(30, form_y - 45, round(self.w() / 2), 30)
+        self.error_box.align(FL_ALIGN_TOP | FL_ALIGN_LEFT)
+        self.error_box.labelcolor(FL_RED)
 
         self.form_group = Fl_Group(30, 0, button_x - 10, 200)
 
@@ -97,7 +101,12 @@ class SignupWindow(Fl_Double_Window):
         number = self.number_inp.value().strip()
         email  = self.email_inp.value().strip()
 
-        if self.validate_info(name, number, email):
+        error = self.check_errors(name, number, email)
+
+        if error:
+            self.error_box.label(error)
+            self.form_group.redraw()
+        else:
             student = [name, number, email]
             self.students.append(student)
             self.add_student(student)
@@ -108,9 +117,34 @@ class SignupWindow(Fl_Double_Window):
         self.name_inp.value("")
         self.number_inp.value("")
         self.email_inp.value("")
+        self.error_box.label("")
 
-    def validate_info(self, name, number, email):
-        return True
+    def check_errors(self, name, number, email):
+        if not name:
+            return "Must specify name"
+
+        if not self.regex_test(name, "[A-Za-z -]+"):
+            return "Name can only have letters, spaces and dashes"
+        
+        if not number:
+            return "Must specify student number"
+
+        if not self.regex_test(number, "[0-9]{6}[0-9]?"):
+            return "Student number must have 6 or seven numbers"
+        
+        if not email:
+            return "Must specify email"
+
+        # Worlds shortest email regex
+        expr = "[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)*(?:\+[a-zA-Z0-9]+)?@[a-zA-Z0-9]+(?:\.[a-zA-Z0-9]+)+"
+        if not self.regex_test(email, expr):
+            return "Invalid email"
+        
+        return False
+
+
+    def regex_test(self, data, expression):
+        return bool(re.fullmatch(expression, data))
 
 
 class Col_Resize_Browser(Fl_Hold_Browser):
