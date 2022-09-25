@@ -1,5 +1,9 @@
 from fltk import * # FLTK :((
 
+# TODO
+# Validate inputs on submit
+# Comment stuff
+
 class SignupWindow(Fl_Double_Window):
     """App to process signups for the school coding club."""
     
@@ -31,6 +35,7 @@ class SignupWindow(Fl_Double_Window):
         self.form_group.resizable(self)
 
         self.submit_button = Fl_Return_Button(button_x, form_y - 5, 120, 40,"Join Club")
+        self.submit_button.callback(self.join_cb)
 
         w = self.w() - 60
         h = round((self.h() * 0.80) - 60)
@@ -53,7 +58,6 @@ class SignupWindow(Fl_Double_Window):
 
         self.end()
         self.load_students()
-        self.add_students()
         self.resizable(self.students_browser)
 
     def determine_position(self):
@@ -74,17 +78,39 @@ class SignupWindow(Fl_Double_Window):
         except FileNotFoundError:
             self.students = []
 
-    def add_students(self):
         for student in self.students:
-            if self.students_browser.size() % 2 == 0:
-                line = "@B23" + "\t@B23 ".join(student)
-            else:
-                line = "\t ".join(student)
-            self.students_browser.add(line)
+            self.add_student(student)
+
+    def add_student(self, student):
+        if self.students_browser.size() % 2 == 0:
+            line = "@B23" + "\t@B23 ".join(student)
+        else:
+            line = "\t ".join(student)
+        self.students_browser.add(line)
 
     def save_students(self):
         with open('members.txt', 'w') as f:
             f.write("\n".join([",".join(student) for student in self.students]))
+
+    def join_cb(self, *args):
+        name = self.name_inp.value().strip()
+        number = self.number_inp.value().strip()
+        email  = self.email_inp.value().strip()
+
+        if self.validate_info(name, number, email):
+            student = [name, number, email]
+            self.students.append(student)
+            self.add_student(student)
+            self.save_students()
+            self.clear_form()
+
+    def clear_form(self):
+        self.name_inp.value("")
+        self.number_inp.value("")
+        self.email_inp.value("")
+
+    def validate_info(self, name, number, email):
+        return True
 
 
 class Col_Resize_Browser(Fl_Hold_Browser):
