@@ -6,11 +6,39 @@ class SignupWindow(Fl_Double_Window):
     def __init__(self, label="Eric Hamber Coding Club"):
         super().__init__(*self.determine_position(), label)
 
+        title = Fl_Box(round(self.w()/2-250), 15, 400, 50, "JOIN CODING CLUB!")
+        title.labelsize(30)
+        title.align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT)
+
+        form_y = round(self.h() * 0.125)
+        name_w = round(self.w() / 4)
+        number_x = 30 + name_w + 30
+        number_w = round(self.w()/12)
+        email_x = number_x + number_w + 30
+        email_w = round(self.w()/3)
+        button_x = email_x + email_w + 30
+
+        self.form_group = Fl_Group(30, 0, button_x - 10, 200)
+
+        self.name_inp = Fl_Input(30, form_y, name_w, 30, "Full Name")
+        self.name_inp.align(FL_ALIGN_TOP | FL_ALIGN_LEFT)
+        self.number_inp = Fl_Int_Input(number_x, form_y, number_w, 30, "Student Number")
+        self.number_inp.align(FL_ALIGN_TOP | FL_ALIGN_LEFT)
+        self.email_inp = Fl_Input(email_x, form_y, email_w, 30, "Preferred email")
+        self.email_inp.align(FL_ALIGN_TOP | FL_ALIGN_LEFT)
+
+        self.form_group.end()
+        self.form_group.resizable(self)
+
+        self.submit_button = Fl_Return_Button(button_x, form_y - 5, 120, 40,"Join Club")
+
         w = self.w() - 60
         h = round((self.h() * 0.80) - 60)
         x = round((self.w() - w) / 2)
         y = round((self.h() * 0.20) + 30) 
-        self.students_browser = Col_Resize_Browser(x, y, w, h)
+        self.students_browser = Col_Resize_Browser(x, y, w, h, "Coding Club Members:")
+        self.students_browser.labelsize(19)
+        self.students_browser.align(FL_ALIGN_TOP | FL_ALIGN_LEFT)
 
         # Use format characters to change text & bg colour + make bold
         self.columnnames = '@B8@C7@b@.NAME\t@B8@C7@b@.STUDENT NUMBER\t@B8@C7@b@.EMAIL'
@@ -23,20 +51,19 @@ class SignupWindow(Fl_Double_Window):
         self.students_browser.column_widths(widths)
         self.students_browser.add(self.columnnames)
 
-        labelbox = Fl_Box(40, self.students_browser.y() - 20, 150, 20, 'Coding Club Members:')
-        labelbox.align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE)
-        labelbox.box(FL_FLAT_BOX)
-
         self.end()
         self.load_students()
         self.add_students()
         self.resizable(self.students_browser)
 
     def determine_position(self):
-        w = round(Fl.w() * 0.75)
-        h = round(Fl.h() * 0.75)
-        x = round((Fl.w() - w) / 2)
-        y = round((Fl.h() - h) / 2)
+        screen_w = Fl.w()
+        screen_h = Fl.h()
+
+        w = round(screen_w * 0.75)
+        h = round(screen_h * 0.75)
+        x = round((screen_w - w) / 2)
+        y = round((screen_h - h) / 2)
         return x, y, w, h
 
     def load_students(self):
