@@ -6,12 +6,59 @@ class SignupWindow(Fl_Double_Window):
     def __init__(self, label="Eric Hamber Coding Club"):
         super().__init__(*self.determine_position(), label)
 
+        w = self.w() - 60
+        h = round((self.h() * 0.80) - 60)
+        x = round((self.w() - w) / 2)
+        y = round((self.h() * 0.20) + 30) 
+        self.students_browser = Col_Resize_Browser(x, y, w, h)
+
+        # Use format characters to change text & bg colour + make bold
+        self.columnnames = '@B8@C7@b@.NAME\t@B8@C7@b@.STUDENT NUMBER\t@B8@C7@b@.EMAIL'
+        
+        # Required for Col_Resize_Browser, maybe not pythonic but it's not really my logic
+        widths = (250, 200, 100, 0)
+        self.students_browser.widths = list(widths[:-1])
+        
+        # Create columns
+        self.students_browser.column_widths(widths)
+        self.students_browser.add(self.columnnames)
+
+        labelbox = Fl_Box(40, self.students_browser.y() - 20, 150, 20, 'Coding Club Members:')
+        labelbox.align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE)
+        labelbox.box(FL_FLAT_BOX)
+
+        self.end()
+        self.load_students()
+        self.add_students()
+        self.resizable(self.students_browser)
+
     def determine_position(self):
         w = round(Fl.w() * 0.75)
         h = round(Fl.h() * 0.75)
         x = round((Fl.w() - w) / 2)
         y = round((Fl.h() - h) / 2)
         return x, y, w, h
+
+    def load_students(self):
+        try:
+            with open("members.txt", "r") as f:
+                self.students = [l.strip().split(",") for l in f.readlines()]
+              
+        except FileNotFoundError:
+            self.students = []
+
+    def add_students(self):
+        for student in self.students:
+            if self.students_browser.size() % 2 == 0:
+                line = "@B23" + "\t@B23 ".join(student)
+            else:
+                line = "\t ".join(student)
+            self.students_browser.add(line)
+
+    def save_students(self):
+        with open('members.txt', 'w') as f:
+            f.write("\n".join([",".join(student) for student in self.students]))
+
 
 class Col_Resize_Browser(Fl_Hold_Browser):
     """Fl_Hold_Browser with resizing columns.
