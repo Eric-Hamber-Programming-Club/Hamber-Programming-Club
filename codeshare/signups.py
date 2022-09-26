@@ -1,4 +1,5 @@
 import re
+import time
 from fltk import * # FLTK is bad, DO NOT USE FLTK
 
 # TODO
@@ -15,10 +16,10 @@ class SignupWindow(Fl_Double_Window):
         title.align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT)
 
         form_y = round(self.h() * 0.130)
-        name_w = round(self.w() / 4)
-        number_x = 30 + name_w + 30
         number_w = round(self.w() / 12)
-        email_x = number_x + number_w + 30
+        name_x = 30 + number_w + 30
+        name_w = round(self.w() / 4)
+        email_x = name_x + name_w + 30
         email_w = round(self.w() / 3)
         button_x = email_x + email_w + 30
 
@@ -28,10 +29,10 @@ class SignupWindow(Fl_Double_Window):
 
         self.form_group = Fl_Group(30, 0, button_x - 10, 200)
 
-        self.name_inp = Fl_Input(30, form_y, name_w, 30, "Full Name")
-        self.name_inp.align(FL_ALIGN_TOP | FL_ALIGN_LEFT)
-        self.number_inp = Fl_Int_Input(number_x, form_y, number_w, 30, "Student Number")
+        self.number_inp = UpdateIntInput(self, 30, form_y, number_w, 30, "Student Number")
         self.number_inp.align(FL_ALIGN_TOP | FL_ALIGN_LEFT)
+        self.name_inp = Fl_Input(name_x, form_y, name_w, 30, "Full Name")
+        self.name_inp.align(FL_ALIGN_TOP | FL_ALIGN_LEFT)
         self.email_inp = Fl_Input(email_x, form_y, email_w, 30, "Preferred email")
         self.email_inp.align(FL_ALIGN_TOP | FL_ALIGN_LEFT)
 
@@ -61,6 +62,10 @@ class SignupWindow(Fl_Double_Window):
         self.students_browser.add(self.columnnames)
 
         self.end()
+
+        with open("allhamber.txt", "r", encoding="utf-16") as f:
+            self.all_students = f.read()
+
         self.load_students()
         self.resizable(self.students_browser)
 
@@ -73,6 +78,9 @@ class SignupWindow(Fl_Double_Window):
         x = round((screen_w - w) / 2)
         y = round((screen_h - h) / 2)
         return x, y, w, h
+    
+    def number_cb(self, wid):
+        print("HERE")
 
     def load_students(self):
         try:
@@ -93,7 +101,10 @@ class SignupWindow(Fl_Double_Window):
         self.students_browser.add(line)
 
     def save_students(self):
-        with open('members.txt', 'w') as f:
+        with open("members.txt", "w") as f:
+            f.write("\n".join([",".join(student) for student in self.students]))
+        
+        with open(f"members/backup-{int(time.time())}", "w") as f:
             f.write("\n".join([",".join(student) for student in self.students]))
 
     def join_cb(self, *args):
@@ -112,6 +123,7 @@ class SignupWindow(Fl_Double_Window):
             self.add_student(student)
             self.save_students()
             self.clear_form()
+            self.number_inp.take_focus()
 
     def clear_form(self):
         self.name_inp.value("")
@@ -142,9 +154,28 @@ class SignupWindow(Fl_Double_Window):
         
         return False
 
-
     def regex_test(self, data, expression):
         return bool(re.fullmatch(expression, data))
+
+    def number_update(self):
+        number = self.number_inp.value()
+        if self.regex_test(number, "[0-9]{6}[0-9]?"):
+            m = re.findall(f"{number}\@learn\.vsb\.bc\.ca (.+) \(Student\)", self.all_students)
+            if m:
+                name = m[0].strip()
+                self.name_inp.value(name)
+
+
+class UpdateIntInput(Fl_Int_Input):
+    def __init__(self, parent, *args):
+        self.parentwin = parent
+        super().__init__(*args)
+    
+    def handle(self, event):
+        ret = super().handle(event)
+        if event == FL_KEYUP:
+            self.parentwin.number_update()
+        return ret
 
 
 class Col_Resize_Browser(Fl_Hold_Browser):
