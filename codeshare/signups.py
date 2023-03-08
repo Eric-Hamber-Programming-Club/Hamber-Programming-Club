@@ -31,10 +31,13 @@ class SignupWindow(Fl_Double_Window):
 
         self.number_inp = UpdateIntInput(self, 30, form_y, number_w, 30, "Student Number")
         self.number_inp.align(FL_ALIGN_TOP | FL_ALIGN_LEFT)
+        self.number_inp.labelsize(17)
         self.name_inp = Fl_Input(name_x, form_y, name_w, 30, "Full Name")
         self.name_inp.align(FL_ALIGN_TOP | FL_ALIGN_LEFT)
+        self.name_inp.labelsize(17)
         self.email_inp = Fl_Input(email_x, form_y, email_w, 30, "Preferred email")
         self.email_inp.align(FL_ALIGN_TOP | FL_ALIGN_LEFT)
+        self.email_inp.labelsize(17)
 
         self.form_group.end()
         self.form_group.resizable(self)
@@ -130,19 +133,20 @@ class SignupWindow(Fl_Double_Window):
         self.number_inp.value("")
         self.email_inp.value("")
         self.error_box.label("")
+        self.redraw()
 
     def check_errors(self, name, number, email):
-        if not name:
-            return "Must specify name"
-
-        if not self.regex_test(name, "[A-Za-z -]+"):
-            return "Name can only have letters, spaces and dashes"
-        
         if not number:
             return "Must specify student number"
 
         if not self.regex_test(number, "[0-9]{6}[0-9]?"):
             return "Student number must have 6 or seven numbers"
+        
+        if not name:
+            return "Must specify name"
+
+        if not self.regex_test(name, "[A-Za-z -]+"):
+            return "Name can only have letters, spaces and dashes"
         
         if not email:
             return "Must specify email"
@@ -161,7 +165,7 @@ class SignupWindow(Fl_Double_Window):
         number = self.number_inp.value()
         if self.regex_test(number, "[0-9]{6}[0-9]?"):
             m = re.findall(f"{number}\@learn\.vsb\.bc\.ca (.+) \(Student\)", self.all_students)
-            if m:
+            if m and not self.name_inp.value().strip():
                 name = m[0].strip()
                 self.name_inp.value(name)
 
